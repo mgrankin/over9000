@@ -4,7 +4,6 @@
 # added sa option to XResNet class
 # added sa to ResBlock class, xresnet function
 # added import fastai.torch_core for spectral norm and tensor 
-# changed xresnet stem sizes to sizes = [c_in,32,64,64]
 
 from fastai.torch_core import *
 
@@ -124,9 +123,8 @@ def filt_sz(recep): return min(64, 2**math.floor(math.log2(recep*0.75)))
 class XResNet(nn.Sequential):
     def __init__(self, expansion, layers, c_in=3, c_out=1000, sa = False, sym= False):
         
-        
         stem = []
-        sizes = [c_in,32,64,64]
+        sizes = [c_in,32,32,64]
         for i in range(3):
             stem.append(conv_layer(sizes[i], sizes[i+1], stride=2 if i==0 else 1))
             #nf = filt_sz(c_in*9)
