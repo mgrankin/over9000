@@ -1,0 +1,22 @@
+name: fastai
+channels:
+  - fastai
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - ipykernel
+  - python
+  - pip
+  - fastai 
+  - pytorch>=1.2
+  - tensorboard>=1.14
+  - tensorflow>=1.13
+  - future
+  - torchvision 
+  - cuda100 
+  - cudatoolkit
+  - absl-py
+  - pip:
+    - wandb
+
