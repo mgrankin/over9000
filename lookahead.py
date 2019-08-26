@@ -22,12 +22,6 @@ class Lookahead(Optimizer):
             w.requires_grad = False
 
     def step(self, closure=None):
-        # pass lr/mom parameters from scheduler to base optimizer
-        if hasattr(self, 'lr'):
-           self.optimizer.lr = self.lr
-        if hasattr(self, 'mom'):
-            self.optimizer.mom = self.mom
-
         loss = None
         if closure is not None:
             loss = closure()
