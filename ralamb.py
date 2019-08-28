@@ -62,35 +62,38 @@ class Ralamb(Optimizer):
 
                     # more conservative since it's an approximated value
                     if N_sma >= 5:
-                        radam_step_size = math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
+                        radam_step_size = group['lr'] * math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
                     else:
-                        radam_step_size = 1 / (1 - beta1 ** state['step'])
+                        radam_step_size = group['lr'] / (1 - beta1 ** state['step'])
                     buffered[2] = radam_step_size
 
-                update = torch.zeros_like(p_data_fp32)
+                if group['weight_decay'] != 0:
+                    p_data_fp32.add_(-group['weight_decay'] * group['lr'], p_data_fp32)
+
+                # more conservative since it's an approximated value
+                radam_step = p_data_fp32.clone()
                 if N_sma >= 5:
                     denom = exp_avg_sq.sqrt().add_(group['eps'])
-                    update.addcdiv_(radam_step_size, exp_avg, denom)
+                    radam_step.addcdiv_(-radam_step_size, exp_avg, denom)
                 else:
-                    update.add_(radam_step_size, exp_avg)
+                    radam_step.add_(-radam_step_size, exp_avg)
 
-                if group['weight_decay'] != 0:
-                    update.add_(group['weight_decay'], p_data_fp32)
-
-                radam_norm = update.pow(2).sum().sqrt()
-                weight_norm = p.data.pow(2).sum().sqrt()
+                radam_norm = radam_step.pow(2).sum().sqrt()
+                weight_norm = p.data.pow(2).sum().sqrt().clamp(0, 10)
                 if weight_norm == 0 or radam_norm == 0:
                     trust_ratio = 1
                 else:
                     trust_ratio = weight_norm / radam_norm
 
-                trust_ratio = max(0, min(10, trust_ratio))
-
                 state['weight_norm'] = weight_norm
                 state['adam_norm'] = radam_norm
                 state['trust_ratio'] = trust_ratio
 
-                p_data_fp32.add_(-update * trust_ratio * group['lr'])
+                if N_sma >= 5:
+                    p_data_fp32.addcdiv_(-radam_step_size * trust_ratio, exp_avg, denom)
+                else:
+                    p_data_fp32.add_(-radam_step_size * trust_ratio, exp_avg)
+
                 p.data.copy_(p_data_fp32)
 
         return loss
