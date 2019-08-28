@@ -16,6 +16,7 @@ from torchvision.models import *
 #from fastai.vision.models.presnet import *
 from xresnet import *
 from functools import partial
+import statsmodels.stats.api as sms
 
 torch.backends.cudnn.benchmark = True
 fastprogress.MAX_COLS = 80
@@ -154,7 +155,5 @@ def main(
                 for i in range(run)])
     
     print(acc)
-    print(np.mean(acc))
-    print(np.std(acc))
-
+    print(f'mean = {np.mean(acc)}, std = {np.std(acc)}, ci-95 = {sms.DescrStatsW(acc).tconfint_mean()}')
 
