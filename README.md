@@ -1,7 +1,5 @@
 # Optimizers and tests 
 
-LARS family of optimizers are more hungry to GPU time pre batch, so my initial comparison isn't fare. No SOTA today, sorry.
-
 Every result is avg of 20 runs.
 
 Dataset                               | LR Schedule| Imagenette size 128, 5 epoch | Imagewoof size 128, 5 epoch
