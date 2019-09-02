@@ -60,9 +60,9 @@ class RAdam(Optimizer):
 
                     # more conservative since it's an approximated value
                     if N_sma >= 5:
-                        step_size = group['lr'] * math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
+                        step_size = math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
                     else:
-                        step_size = group['lr'] / (1 - beta1 ** state['step'])
+                        step_size = 1.0 / (1 - beta1 ** state['step'])
                     buffered[2] = step_size
 
                 if group['weight_decay'] != 0:
@@ -71,9 +71,9 @@ class RAdam(Optimizer):
                 # more conservative since it's an approximated value
                 if N_sma >= 5:            
                     denom = exp_avg_sq.sqrt().add_(group['eps'])
-                    p_data_fp32.addcdiv_(-step_size, exp_avg, denom)
+                    p_data_fp32.addcdiv_(-step_size * group['lr'], exp_avg, denom)
                 else:
-                    p_data_fp32.add_(-step_size, exp_avg)
+                    p_data_fp32.add_(-step_size * group['lr'], exp_avg)
 
                 p.data.copy_(p_data_fp32)
 
@@ -148,7 +148,7 @@ class AdamW(Optimizer):
 
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, warmup = 0):
         defaults = dict(lr=lr, betas=betas, eps=eps,
-                        weight_decay=weight_decay, amsgrad=amsgrad, use_variance=True, warmup = warmup)
+                        weight_decay=weight_decay, warmup = warmup)
         super(AdamW, self).__init__(params, defaults)
 
     def __setstate__(self, state):
