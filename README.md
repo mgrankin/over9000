@@ -12,3 +12,5 @@ Novograd                              |Flat and anneal| 0.8711                  
 Radam                                 |Flat and anneal| 0.8444                       | 0.537
 Lookahead                             |OneCycle| 0.8578                       | 0.6106
 Lamb                                  |OneCycle| 0.8400                       | 0.5597
+DiffGrad                              |OneCycle| 0.8527                       | 0.5912
+AdaMod                              |OneCycle| 0.8473                       | 0.6132

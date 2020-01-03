@@ -43,6 +43,8 @@ from ralamb import *
 from over9000 import *
 from lookahead import *
 from lamb import *
+from diffgrad import DiffGrad
+from adamod import AdaMod
 
 def fit_with_annealing(learn:Learner, num_epoch:int, lr:float=defaults.lr, annealing_start:float=0.7)->None:
     n = len(learn.data.train_dl)
@@ -90,7 +92,9 @@ def train(
     elif opt=='over9000'  : opt_func = partial(Over9000,  betas=(mom,alpha), eps=eps)
     elif opt=='lookahead'  : opt_func = partial(LookaheadAdam, betas=(mom,alpha), eps=eps)
     elif opt=='lamb'  : opt_func = partial(Lamb, betas=(mom,alpha), eps=eps)
-
+    elif opt=='diffgrad'  : opt_func = partial(DiffGrad, version=1, betas=(mom,alpha),eps=eps)
+    elif opt=='adamod'  : opt_func = partial(AdaMod, betas=(mom,alpha), eps=eps, beta3=0.999)
+   
     data = get_data(size, woof, bs)
     bs_rat = bs/bs_one_gpu   #originally bs/256
     if gpu is not None: bs_rat *= max(num_distrib(), 1)
