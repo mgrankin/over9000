@@ -6,6 +6,7 @@ Paper: `Lookahead Optimizer: k steps forward, 1 step back` - https://arxiv.org/a
 """
 import torch
 from torch.optim.optimizer import Optimizer
+from torch.optim import Adam
 from collections import defaultdict
 
 class Lookahead(Optimizer):
