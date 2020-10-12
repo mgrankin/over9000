@@ -1,4 +1,4 @@
-name: fastai
+name: over9000
 channels:
   - fastai
   - pytorch
@@ -8,6 +8,7 @@ dependencies:
   - ipykernel
   - python
   - pip
+  - ipywidgets
   - fastai 
   - pytorch>=1.2
   - future
@@ -18,4 +19,4 @@ dependencies:
   - statsmodels
   - pip:
     - wandb
-
+    - pytorch-lightning>=0.10

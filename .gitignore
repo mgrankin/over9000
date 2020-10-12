@@ -44,3 +44,4 @@ wandb/*
 postgres/*
 data/*
 runs/*
+lightning_logs/*
