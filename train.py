@@ -34,6 +34,7 @@ from diffgrad import DiffGrad
 from adamod import AdaMod
 from madam import Madam
 from apollo import Apollo
+from adabelief import AdaBelief
 
 def d(x): 
     return 1
@@ -123,7 +124,7 @@ def train(
     "Distributed training of Imagenette."
     
     if gpu is None: bs *= torch.cuda.device_count()
-    if   opt=='adam' : opt_func = partial(Adam, betas=(mom,alpha), eps=eps)#mom=mom, sqr_mom=alpha, eps=eps)
+    if   opt=='adam' : opt_func = partial(Adam, betas=(mom,alpha), eps=eps)
     elif opt=='radam' : opt_func = partial(RAdam, betas=(mom,alpha), eps=eps)
     elif opt=='novograd' : opt_func = partial(Novograd, betas=(mom,alpha), eps=eps)
     elif opt=='ranger'  : opt_func = partial(Ranger,  betas=(mom,alpha), eps=eps)
@@ -135,6 +136,7 @@ def train(
     elif opt=='adamod'  : opt_func = partial(AdaMod, betas=(mom,alpha), eps=eps, beta3=0.999)
     elif opt=='madam'  : opt_func = partial(Madam, p_scale=3.0, g_bound=10.0)
     elif opt=='apollo' : opt_func = partial(Apollo, beta=mom, eps=eps, warmup=0)
+    elif opt=='adabelief' : opt_func = partial(AdaBelief, betas=(mom,alpha), eps=eps)
 
     dls = get_data(size, woof, bs)
     
