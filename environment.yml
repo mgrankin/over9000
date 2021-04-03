@@ -1,6 +1,5 @@
 name: over9000
 channels:
-  - fastai
   - pytorch
   - conda-forge
   - defaults
@@ -9,12 +8,10 @@ dependencies:
   - python
   - pip
   - ipywidgets
-  - fastai 
-  - pytorch>=1.6,<1.7
+  - pytorch>=1.8.1
   - future
   - torchvision 
-  - cuda100 
-  - cudatoolkit
+  - cudatoolkit=11.1
   - absl-py
   - statsmodels
   - pip:
@@ -22,3 +19,5 @@ dependencies:
     - pytorch-lightning>=0.10
     - tabulate
     - colorama
+    - scikit-learn 
+    #pip install fastprogress fastcore fastai"==2.2.7" --no-dependencies

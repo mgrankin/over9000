@@ -35,6 +35,7 @@ from adamod import AdaMod
 from madam import Madam
 from apollo import Apollo
 from adabelief import AdaBelief
+from madgrad import MADGRAD
 
 def d(x): 
     return 1
@@ -60,9 +61,11 @@ class ConcatLR(torch.optim.lr_scheduler._LRScheduler):
             return self.scheduler2.get_lr()
 
 class LModel(pl.LightningModule):
-    def __init__(self, model, sched_type, total_steps, ann_start):
+    def __init__(self, model, opt_func, lr, sched_type, total_steps, ann_start):
         super(LModel, self).__init__()
         self.model = model
+        self.opt_func = opt_func
+        self.lr = lr
         self.sched_type = sched_type
         self.total_steps = total_steps
         self.ann_start = ann_start
@@ -91,13 +94,13 @@ class LModel(pl.LightningModule):
         print(self.result)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=3e-4, betas=(0.9,0.99), eps=1e-06)
+        optimizer = self.opt_func(self.parameters(), lr=self.lr)
         if self.sched_type == 'flat_and_anneal':
             dummy = LambdaLR(optimizer, d)
             cosine = CosineAnnealingLR(optimizer, self.total_steps*(1-self.ann_start))
             scheduler = ConcatLR(optimizer, dummy, cosine, self.total_steps, self.ann_start)
         else:
-            scheduler = OneCycleLR(optimizer, max_lr=3e-3, total_steps=self.total_steps, pct_start=0.3,
+            scheduler = OneCycleLR(optimizer, max_lr=self.lr, total_steps=self.total_steps, pct_start=0.3,
                                                             div_factor=10, cycle_momentum=True)        
         meta_sched = {
          'scheduler': scheduler,
@@ -137,15 +140,16 @@ def train(
     elif opt=='madam'  : opt_func = partial(Madam, p_scale=3.0, g_bound=10.0)
     elif opt=='apollo' : opt_func = partial(Apollo, beta=mom, eps=eps, warmup=0)
     elif opt=='adabelief' : opt_func = partial(AdaBelief, betas=(mom,alpha), eps=eps)
+    elif opt=='madgrad' : opt_func = partial(MADGRAD, momentum=mom, eps=eps)
+
 
     dls = get_data(size, woof, bs)
     
     m = globals()[arch]()
     lr_monitor = LearningRateMonitor(logging_interval='step')
     total_steps=len(dls[0])*epochs
-    lmodel = LModel(m, sched_type, total_steps, ann_start)
-    trainer = pl.Trainer(gpus=gpu, max_epochs=epochs, callbacks=[lr_monitor], precision=16)
-
+    lmodel = LModel(m, opt_func, lr, sched_type, total_steps, ann_start)
+    trainer = pl.Trainer(gpus=gpu, max_epochs=epochs, callbacks=[lr_monitor], precision=16, accelerator="dp") 
     trainer.fit(lmodel, dls[0], dls[1])
     return lmodel.result['avg_acc']
 
