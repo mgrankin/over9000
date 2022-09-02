@@ -4,7 +4,7 @@ from torch import nn
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 import pytorch_lightning as pl
-from pytorch_lightning.metrics.functional import accuracy
+from torchmetrics.functional import accuracy
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, OneCycleLR
 from functools import partial
 import statsmodels.stats.api as sms
@@ -36,6 +36,7 @@ from madam import Madam
 from apollo import Apollo
 from adabelief import AdaBelief
 from madgrad import MADGRAD
+from adan import Adan
 
 def d(x): 
     return 1
@@ -141,7 +142,7 @@ def train(
     elif opt=='apollo' : opt_func = partial(Apollo, beta=mom, eps=eps, warmup=0)
     elif opt=='adabelief' : opt_func = partial(AdaBelief, betas=(mom,alpha), eps=eps)
     elif opt=='madgrad' : opt_func = partial(MADGRAD, momentum=mom, eps=eps)
-
+    elif opt=='adan' : opt_func = partial(Adan, weight_decay=0.02, betas=(mom,alpha,0.99), eps=eps)
 
     dls = get_data(size, woof, bs)
     
@@ -149,7 +150,7 @@ def train(
     lr_monitor = LearningRateMonitor(logging_interval='step')
     total_steps=len(dls[0])*epochs
     lmodel = LModel(m, opt_func, lr, sched_type, total_steps, ann_start)
-    trainer = pl.Trainer(gpus=gpu, max_epochs=epochs, callbacks=[lr_monitor], precision=16, accelerator="dp") 
+    trainer = pl.Trainer(accelerator='gpu', devices=gpu, max_epochs=epochs, callbacks=[lr_monitor], precision=16) 
     trainer.fit(lmodel, dls[0], dls[1])
     return lmodel.result['avg_acc']
 

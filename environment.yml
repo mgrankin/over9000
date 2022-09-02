@@ -20,4 +20,6 @@ dependencies:
     - tabulate
     - colorama
     - scikit-learn 
+    - fastai
+    - timm
     #pip install fastprogress fastcore fastai"==2.2.7" --no-dependencies
