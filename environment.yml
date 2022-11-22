@@ -43,6 +43,7 @@ dependencies:
   - wandb
   - tabulate
   - colorama
+  - rich
   - pip:
     - truegrad
     - fastai
