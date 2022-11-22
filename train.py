@@ -1,9 +1,10 @@
 import os
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks import RichProgressBar
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
-import pytorch_lightning as pl
 from torchmetrics.functional import accuracy
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, OneCycleLR
 from functools import partial
@@ -37,6 +38,8 @@ from apollo import Apollo
 from adabelief import AdaBelief
 from madgrad import MADGRAD
 from adan import Adan
+from truegrad.utils import patch_model
+from truegrad.optim import TGAdamW
 
 def d(x): 
     return 1
@@ -110,6 +113,8 @@ class LModel(pl.LightningModule):
         }  
         return [optimizer], [meta_sched]
 
+
+
 def train(
         gpu:Param("GPU to run on", str)=None,
         woof: Param("Use imagewoof (otherwise imagenette)", int)=0,
@@ -127,6 +132,8 @@ def train(
         ):
     "Distributed training of Imagenette."
     
+    m = globals()[arch]()
+    
     if gpu is None: bs *= torch.cuda.device_count()
     if   opt=='adam' : opt_func = partial(Adam, betas=(mom,alpha), eps=eps)
     elif opt=='radam' : opt_func = partial(RAdam, betas=(mom,alpha), eps=eps)
@@ -143,14 +150,18 @@ def train(
     elif opt=='adabelief' : opt_func = partial(AdaBelief, betas=(mom,alpha), eps=eps)
     elif opt=='madgrad' : opt_func = partial(MADGRAD, momentum=mom, eps=eps)
     elif opt=='adan' : opt_func = partial(Adan, weight_decay=0.02, betas=(mom,alpha,0.99), eps=eps)
+    elif opt=='tgadamw': 
+        patch_model(m)
+        opt_func = partial(TGAdamW, betas=(mom,alpha), eps=eps)
+        
 
     dls = get_data(size, woof, bs)
     
-    m = globals()[arch]()
     lr_monitor = LearningRateMonitor(logging_interval='step')
     total_steps=len(dls[0])*epochs
     lmodel = LModel(m, opt_func, lr, sched_type, total_steps, ann_start)
-    trainer = pl.Trainer(accelerator='gpu', devices=gpu, max_epochs=epochs, callbacks=[lr_monitor], precision=16) 
+    
+    trainer = pl.Trainer(accelerator='gpu', devices=gpu, max_epochs=epochs, callbacks=[lr_monitor, RichProgressBar()])#, precision=16) 
     trainer.fit(lmodel, dls[0], dls[1])
     return lmodel.result['avg_acc']
 

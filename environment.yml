@@ -1,25 +1,48 @@
 name: over9000
 channels:
   - pytorch
+  - nvidia
   - conda-forge
-  - defaults
 dependencies:
-  - ipykernel
   - python
   - pip
+  - nbdev
+  - ipykernel
   - ipywidgets
-  - pytorch>=1.8.1
-  - future
-  - torchvision 
-  - cudatoolkit=11.1
-  - absl-py
+  - jupyterlab_widgets
+  - tqdm
+# https://anaconda.org/pytorch/pytorch/files
+  - pytorch=*=*cuda11.7* 
+# https://anaconda.org/pytorch/torchvision/files
+  - torchvision=0.14.*=*cu117*
+##############################################################################################################################
+  - tokenizers<0.13
+  - psycopg2
+  - SQLAlchemy
+  - pandas
+  - Pillow
+  - fastapi
+  - uvicorn
+  - transformers
+  - scrapy
+  - dateparser
+  - matplotlib
+  - ftfy
+  - dash
+  - sentencepiece
+  - docker-compose
+  - gunicorn
+  - cython
   - statsmodels
+  - absl-py
+  - future
+  - comm
+  - pytorch-lightning
+  - scikit-learn 
+  - timm
+  - wandb
+  - tabulate
+  - colorama
   - pip:
-    - wandb
-    - pytorch-lightning>=0.10
-    - tabulate
-    - colorama
-    - scikit-learn 
+    - truegrad
     - fastai
-    - timm
-    #pip install fastprogress fastcore fastai"==2.2.7" --no-dependencies
